@@ -34,7 +34,7 @@ interface ListeningFilterParams {
 }
 
 interface ListeningMessagesParams extends ListeningFilterParams {
-  topic_id: number;
+  topic_id: string;
   start_date: string;
   end_date: string;
   fields: string[];
@@ -48,7 +48,7 @@ interface ListeningMessagesParams extends ListeningFilterParams {
 }
 
 interface ListeningMetricsParams extends ListeningFilterParams {
-  topic_id: number;
+  topic_id: string;
   start_date: string;
   end_date: string;
   metrics?: string[];
@@ -190,7 +190,7 @@ export function registerListeningTools(
       inputSchema: z
         .object({
           customer_id: CustomerIdSchema,
-          topic_id: z.coerce.number().int().describe("Listening topic ID (accepts string or number)"),
+          topic_id: z.coerce.string().min(1).describe("Listening topic ID (UUID string from sprout_list_topics)"),
           start_date: DateSchema.describe("Start of date range (inclusive)"),
           end_date: DateSchema.describe("End of date range (exclusive)"),
           sentiment: z
@@ -262,7 +262,7 @@ export function registerListeningTools(
       inputSchema: z
         .object({
           customer_id: CustomerIdSchema,
-          topic_id: z.coerce.number().int().describe("Listening topic ID (accepts string or number)"),
+          topic_id: z.coerce.string().min(1).describe("Listening topic ID (UUID string from sprout_list_topics)"),
           start_date: DateSchema.describe("Start of date range (inclusive)"),
           end_date: DateSchema.describe("End of date range (exclusive)"),
           networks: z.array(z.string()).optional().describe("Filter metrics by networks"),
@@ -324,7 +324,7 @@ export function registerListeningTools(
       inputSchema: z
         .object({
           customer_id: CustomerIdSchema,
-          topic_id: z.coerce.number().int().describe("Listening topic ID (accepts string or number)"),
+          topic_id: z.coerce.string().min(1).describe("Listening topic ID (UUID string from sprout_list_topics)"),
           start_date: DateSchema.describe("Start of date range (inclusive)"),
           end_date: DateSchema.describe("End of date range (exclusive)"),
           response_format: ResponseFormatSchema,
@@ -345,7 +345,7 @@ export function registerListeningTools(
 }
 
 interface AnalyzeListeningTrendsParams {
-  topic_id: number;
+  topic_id: string;
   start_date: string;
   end_date: string;
   response_format: ResponseFormat;

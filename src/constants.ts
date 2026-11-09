@@ -24,4 +24,4 @@ export const CASES_MAX_DATE_RANGE_DAYS = 7;
 export const ANALYTICS_MAX_DATE_RANGE_DAYS = 365;
 
 export const RETRYABLE_STATUS_CODES = [429, 500, 503, 504];
-export const SERVER_VERSION = "1.3.4";
+export const SERVER_VERSION = "1.3.4-klaviyo.1";
