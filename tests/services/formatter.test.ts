@@ -5,6 +5,7 @@ import {
   formatOutput,
   truncateIfNeeded,
   safeToolCall,
+  stripFormatChars,
 } from "../../src/services/formatter.js";
 
 describe("formatAsTable", () => {
@@ -150,6 +151,40 @@ describe("safeToolCall", () => {
     });
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toContain("network failure");
+  });
+
+  it("strips invisible format characters from tool output", async () => {
+    const post = "\u200EEvery year before Black Friday, Klaviyo changes how everything looks. \u200E \u200ENow, I go with the flow.";
+    const result = await safeToolCall(async () => ({
+      content: [{ type: "text" as const, text: formatAsTable([{ network: "LINKEDIN", text: post }], ["network", "text"]) }],
+    }));
+    expect(result.content[0]!.text).not.toMatch(/\p{Cf}/u);
+    expect(result.content[0]!.text).toContain("| LINKEDIN | Every year before Black Friday, Klaviyo changes how everything looks.  Now, I go with the flow. |");
+  });
+
+  it("strips invisible format characters from error output", async () => {
+    const result = await safeToolCall(async () => {
+      throw new Error("bad\u200B value\u202E");
+    });
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("bad value");
+    expect(result.content[0]!.text).not.toMatch(/\p{Cf}/u);
+  });
+});
+
+describe("stripFormatChars", () => {
+  it("removes bidi marks, zero-width characters, BOM, and tag characters", () => {
+    const input = "a\u200Eb\u200Fc\u200Bd\u200De\u2060f\uFEFFg\u202Ah\u2066i\u{E0041}j\u00ADk";
+    expect(stripFormatChars(input)).toBe("abcdefghijk");
+  });
+
+  it("keeps ordinary text, accents, and emoji variation selectors", () => {
+    const input = "Café ❤️ 日本語 — ok";
+    expect(stripFormatChars(input)).toBe(input);
+  });
+
+  it("splits zero-width-joiner emoji into their parts", () => {
+    expect(stripFormatChars("🤷\u200D♀️")).toBe("🤷♀️");
   });
 });
 

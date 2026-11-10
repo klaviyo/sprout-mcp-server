@@ -53,6 +53,22 @@ export function formatAsTable(
   return [header, separator, ...rows].join("\n");
 }
 
+// Unicode format characters (category Cf): bidi marks, zero-width spaces and
+// joiners, tag characters. They are invisible, and security scanners between
+// this server and the agent block any result that contains them.
+const FORMAT_CHARS = /\p{Cf}/gu;
+
+export function stripFormatChars(text: string): string {
+  return text.replace(FORMAT_CHARS, "");
+}
+
+function stripResponse(response: ToolResponse): ToolResponse {
+  return {
+    ...response,
+    content: response.content.map((item) => ({ ...item, text: stripFormatChars(item.text) })),
+  };
+}
+
 /**
  * Wrap a tool handler to catch errors and return them as MCP error responses
  * instead of crashing the server.
@@ -61,13 +77,13 @@ export async function safeToolCall(
   fn: () => Promise<ToolResponse>
 ): Promise<ToolResponse> {
   try {
-    return await fn();
+    return stripResponse(await fn());
   } catch (error) {
     reportToolError(error);
-    return {
+    return stripResponse({
       isError: true,
       content: [{ type: "text" as const, text: handleApiError(error) }],
-    };
+    });
   }
 }
 
